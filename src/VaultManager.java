@@ -180,7 +180,9 @@ public class VaultManager {
             String line = reader.readLine();
             Gson   gson = new GsonBuilder().registerTypeAdapter(Vault.class, new VaultJson()).create();
             Vault  v    = gson.fromJson(line, Vault.class);
-            vaults.add(v);
+            if (v != null) {
+                vaults.add(v);
+            }
         } catch (FileNotFoundException fileNotFoundException) {
             //Do nothing. There are no passwords currently stored.
         } catch (IOException ioException) {
