@@ -73,7 +73,7 @@ public class Client {
      * @param masterKey A user specified password
      * @return A Vault object
      */
-    private Vault retrieveVault(String user, String masterKey) {
+    public Vault retrieveVault(String user, String masterKey) {
         String authKey   = hashMasterKey(masterKey);
         String vaultJson = vaultManager.retrieveVault(user, authKey);
         Gson   gson      = new GsonBuilder().registerTypeAdapter(Vault.class, new VaultJson().nullSafe()).create();

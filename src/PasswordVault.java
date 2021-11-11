@@ -29,7 +29,11 @@ public class PasswordVault extends JFrame {
             JPanel password = new JPanel();
             password.add(new JLabel("Password"));
             JPasswordField passwordField = new JPasswordField(20);
+            passwordField.addActionListener(e -> {
+                login(usernameField.getText(), new String(passwordField.getPassword()), frame);
+            });
             password.add(passwordField);
+
             this.add(password);
 
             this.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -39,10 +43,9 @@ public class PasswordVault extends JFrame {
              */
             JButton login = new JButton("Login");
             login.addActionListener(e -> {
-                System.out.println(usernameField.getText());
-                System.out.println(passwordField.getPassword());
                 login(usernameField.getText(), new String(passwordField.getPassword()), frame);
             });
+            login.setAlignmentX(Component.CENTER_ALIGNMENT);
             this.add(login);
 
             /*
@@ -55,8 +58,30 @@ public class PasswordVault extends JFrame {
 
         }
 
-        private void login(String username, String password, PasswordVault frame) {
+        private void login(String user, String masterKey, PasswordVault frame) {
+            Vault vault;
+            try {
+                vault = frame.client.retrieveVault(user, masterKey);
+            } catch (Exception e) {
 
+            }
+            frame.setContentPane(new VaultPanel(user, masterKey, frame, null));
+            frame.revalidate();
+        }
+    }
+
+    static class VaultPanel extends JPanel {
+        VaultPanel(String user, String masterKey, PasswordVault frame, Vault vault) {
+            this.add(new JLabel(user));
+            this.add(new JLabel(masterKey));
+
+            JButton logout = new JButton("Logout");
+            logout.setAlignmentX(Component.CENTER_ALIGNMENT);
+            logout.addActionListener(e -> {
+                frame.setContentPane(new LoginPanel(frame));
+                frame.revalidate();
+            });
+            this.add(logout);
         }
     }
 
@@ -120,7 +145,6 @@ public class PasswordVault extends JFrame {
     public void start() {
         this.setTitle("Password Vault");
         this.setSize(600, 400);
-//        this.pack();
         this.setVisible(true);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
