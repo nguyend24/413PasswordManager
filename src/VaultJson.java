@@ -40,7 +40,7 @@ public class VaultJson extends TypeAdapter<Vault> {
 
         Map<String, String> passwords = new LinkedHashMap<>();
         while (jsonReader.peek() != JsonToken.END_OBJECT) {
-            passwords.put(jsonReader.nextString(), jsonReader.nextString());
+            passwords.put(jsonReader.nextName(), jsonReader.nextString());
         }
         jsonReader.endObject();
 

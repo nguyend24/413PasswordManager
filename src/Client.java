@@ -13,10 +13,10 @@ import java.util.Locale;
 import java.util.Map;
 
 public class Client {
-    VaultManager vaultManager;
-    private String    user;
-    private SecretKey secretKey;
-    private String    hash;
+    private final VaultManager vaultManager;
+    private final String       user;
+    private final SecretKey    secretKey;
+    private final String       hash;
 
     public Client(String user, String masterKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
         this.user = user;
@@ -29,24 +29,18 @@ public class Client {
      * Creates a new empty vault for a user
      * Json Representation Example:
      * {"user":JohnSmith,authKey:"2jo4ijr284joifajfalkejf",passwords:{}}
-     *
-     * @param user
-     * @param masterKey A user specified password
      */
-    public void createNewVault(String user, String masterKey) {
-        String authKey = hashMasterKey(masterKey);
-        vaultManager.createVault(user, authKey, "{}");
+    public void createNewVault() {
+        vaultManager.createVault(user, hash, "{}");
     }
 
     /**
      * Deletes a user's entire vault
      *
-     * @param user
-     * @param masterKey A user specified password
+     * @param user User of Vault being deleted
      */
-    public void deleteVault(String user, String masterKey) {
-        String authKey = hashMasterKey(masterKey);
-        vaultManager.deleteVault(user, authKey);
+    public void deleteVault(String user) {
+        vaultManager.deleteVault(user, hash);
     }
 
     /**
@@ -55,40 +49,51 @@ public class Client {
      * All passwords are encrypted before adding to the vault
      *
      * @param identifier Name to identify saved password. e.g. site domain
-     * @param password Password to encrypt and save
+     * @param password   Password to encrypt and save
      */
-    public void addVaultEntry(String identifier, String password) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
+    public void addVaultEntry(String identifier, String password) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, UserDoesNotExistException {
         Vault v = retrieveVault();
         identifier = identifier.toLowerCase();
         String encryptedPassword = encrypt(password, secretKey);
 
         v.getPasswords()
          .put(identifier, encryptedPassword);
+
+        String passwordsJson = new Gson().toJson(v.getPasswords(), Map.class);
+        vaultManager.updateVault(user, hash, passwordsJson);
     }
 
     /**
      * Remove a password entry from a user's vault
      *
-     * @param user
-     * @param masterKey A user specified password
+     * @param identifier Name to identify saved password. e.g. site domain
      */
-    public void removeVaultEntry(String identifier) {
-        Vault v = retrieveVault();
+    public void removeVaultEntry(String identifier) throws UserDoesNotExistException {
+        Vault               v         = retrieveVault();
         Map<String, String> passwords = v.getPasswords();
         passwords.remove(identifier);
+
+        String passwordsJson = new Gson().toJson(v.getPasswords(), Map.class);
+        vaultManager.updateVault(user, hash, passwordsJson);
     }
 
     /**
      * Retrieves a users entire vault
      *
-     * @param user
-     * @param masterKey A user specified password
      * @return A Vault object
      */
-    public Vault retrieveVault() {
+    public Vault retrieveVault() throws UserDoesNotExistException {
         String vaultJson = vaultManager.retrieveVault(user, hash);
         Gson   gson      = new GsonBuilder().registerTypeAdapter(Vault.class, new VaultJson().nullSafe()).create();
         return gson.fromJson(vaultJson, Vault.class);
+    }
+
+    public void printPasswords() throws UserDoesNotExistException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        Vault               v         = retrieveVault();
+        Map<String, String> passwords = v.getPasswords();
+        for (String key : passwords.keySet()) {
+            System.out.println("key: " + decrypt(passwords.get(key), secretKey));
+        }
     }
 
     /**
@@ -120,6 +125,18 @@ public class Client {
         return "";
     }
 
+    /**
+     * Generates a ciphertext for a provided text and key using 256-bit AES.
+     *
+     * @param input A String to be encrypted
+     * @param key   The key to use to perform encryption
+     * @return AES encrypted and Base64 encoded version of the input text
+     * @throws NoSuchPaddingException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeyException
+     * @throws BadPaddingException
+     * @throws IllegalBlockSizeException
+     */
     public static String encrypt(String input, SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.ENCRYPT_MODE, key);
@@ -129,6 +146,18 @@ public class Client {
                      .encodeToString(cipherText);
     }
 
+    /**
+     * Decrypts a ciphertext with the given key
+     *
+     * @param input
+     * @param key
+     * @return Decrypted ciphertext
+     * @throws NoSuchPaddingException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeyException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException
+     */
     public static String decrypt(String input, SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, key);
@@ -138,13 +167,23 @@ public class Client {
         return new String(decoded);
     }
 
+    /**
+     * Generates a Secret Key for use with AES encryption
+     *
+     * @param password A text to transform into a key
+     * @param salt
+     * @return A SecretKey for the provided password and salt
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
+     */
     public static SecretKey getKeyFromPassword(String password, String salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
 
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         KeySpec          spec    = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 65536, 256);
-        SecretKey secret = new SecretKeySpec(factory.generateSecret(spec)
-                                                    .getEncoded(), "AES");
 
-        return secret;
+        return new SecretKeySpec(factory.generateSecret(spec)
+                                        .getEncoded(), "AES");
     }
 }
+
+

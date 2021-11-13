@@ -29,9 +29,7 @@ public class PasswordVault extends JFrame {
             JPanel password = new JPanel();
             password.add(new JLabel("Password"));
             JPasswordField passwordField = new JPasswordField(20);
-            passwordField.addActionListener(e -> {
-                login(usernameField.getText(), new String(passwordField.getPassword()), frame);
-            });
+            passwordField.addActionListener(e -> login(usernameField.getText(), new String(passwordField.getPassword()), frame));
             password.add(passwordField);
 
             this.add(password);
@@ -42,9 +40,7 @@ public class PasswordVault extends JFrame {
             Login button
              */
             JButton login = new JButton("Login");
-            login.addActionListener(e -> {
-                login(usernameField.getText(), new String(passwordField.getPassword()), frame);
-            });
+            login.addActionListener(e -> login(usernameField.getText(), new String(passwordField.getPassword()), frame));
             login.setAlignmentX(Component.CENTER_ALIGNMENT);
             this.add(login);
 
@@ -61,7 +57,7 @@ public class PasswordVault extends JFrame {
         private void login(String user, String masterKey, PasswordVault frame) {
             Vault vault;
             try {
-                vault = frame.client.retrieveVault(user, masterKey);
+//                vault = frame.client.retrieveVault(user, masterKey);
             } catch (Exception e) {
 
             }
@@ -94,15 +90,15 @@ public class PasswordVault extends JFrame {
     private JTextField display;
     private JLabel     msg1;
     private JLabel     msg2;
-    JFrame       frame = new JFrame("My First Gui");
+    JFrame frame = new JFrame("My First Gui");
 
     VaultManager vaultManager;
     Client       client;
 
     public PasswordVault() {
         this.setContentPane(new LoginPanel(this));
-        vaultManager = new VaultManager();
-        client = new Client(vaultManager);
+//        vaultManager = new VaultManager();
+//        client = new Client(vaultManager);
 //        JPanel panel1 = new JPanel();
 //        addPasswordButton = new JButton("Add Password");
 //        deletePasswordButton = new JButton("Delete Password");

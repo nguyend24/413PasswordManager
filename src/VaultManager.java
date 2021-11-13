@@ -9,9 +9,8 @@ import java.util.Map;
 
 
 public class VaultManager {
-    static final String VAULT_FILE = "encryptedStorage.txt";
-
-    List<Vault> vaults;
+    static final  String      VAULT_FILE = "encryptedStorage.txt";
+    private final List<Vault> vaults;
 
     public VaultManager() {
         vaults = readVaultStorage(VAULT_FILE);
@@ -19,17 +18,20 @@ public class VaultManager {
 
     /**
      * Find and return
-     * @param user The user for the vault to retrieve
+     *
+     * @param user    The user for the vault to retrieve
      * @param authKey Key to authenticate proper person is attempting to retrieve a vault
      * @return Json representation of a Vault
      */
-    public String retrieveVault(String user, String authKey) {
+    public String retrieveVault(String user, String authKey) throws UserDoesNotExistException {
         if (userExists(user)) {
             Vault v = findUserVault(user);
             if (v.getAuthKey().equals(authKey)) {
                 Gson gson = new GsonBuilder().registerTypeAdapter(Vault.class, new VaultJson().nullSafe()).create();
                 return gson.toJson(v);
             }
+        } else {
+            throw new UserDoesNotExistException("User not found");
         }
 
         return "{}";
@@ -38,8 +40,8 @@ public class VaultManager {
     /**
      * Creates a new Vault and stores it
      *
-     * @param user Identifier of the new vault
-     * @param authKey Key that will to used to authenticate the vault in the future
+     * @param user      Identifier of the new vault
+     * @param authKey   Key that will to used to authenticate the vault in the future
      * @param passwords The list of passwords in Json representation
      */
     public void createVault(String user, String authKey, String passwords) {
@@ -48,7 +50,7 @@ public class VaultManager {
         } else {
             Map<String, String> passwordsMap = new Gson().fromJson(passwords, new TypeToken<Map<String, String>>() {
             }.getType());
-            Vault               v            = new Vault(user, authKey, passwordsMap);
+            Vault v = new Vault(user, authKey, passwordsMap);
             vaults.add(v);
         }
 
@@ -58,14 +60,14 @@ public class VaultManager {
     /**
      * Overwrites the currently saved vault with a new modified list of passwords
      *
-     * @param user The user of the Vault to modify
-     * @param authKey Key to authenticate user attempting to update the Vault
+     * @param user      The user of the Vault to modify
+     * @param authKey   Key to authenticate user attempting to update the Vault
      * @param passwords A new and modified list of passwords
      */
     public void updateVault(String user, String authKey, String passwords) {
         if (userExists(user)) {
-            Vault v = findUserVault(user);
-            int vIndex = findUserVaultIndex(user);
+            Vault v      = findUserVault(user);
+            int   vIndex = findUserVaultIndex(user);
             if (v.getAuthKey().equals(authKey)) {
                 Vault newVault = new Vault(user, authKey, passwords);
                 vaults.set(vIndex, newVault);
@@ -77,7 +79,8 @@ public class VaultManager {
 
     /**
      * Deletes a Vault
-     * @param user The user of the Vault to delete
+     *
+     * @param user    The user of the Vault to delete
      * @param authKey Key to authenticate user attempting to delete a Vault
      */
     public void deleteVault(String user, String authKey) {
@@ -95,6 +98,7 @@ public class VaultManager {
 
     /**
      * Check if a Vault already exists for a user
+     *
      * @param user The user to search for
      * @return true if the user exists, else otherwise
      */
@@ -110,6 +114,7 @@ public class VaultManager {
 
     /**
      * Finds the Vault corresponding to a specified user
+     *
      * @param user The user to search for
      * @return The Vault if found, null otherwise
      */
@@ -125,6 +130,7 @@ public class VaultManager {
 
     /**
      * Finds the index of the matching Vault for a corresponding user
+     *
      * @param user The user to search for
      * @return The index of the Vault if found, -1 otherwise
      */
@@ -135,7 +141,7 @@ public class VaultManager {
             }
         }
 
-        return -1;
+        return - 1;
     }
 
     /**
@@ -151,7 +157,7 @@ public class VaultManager {
      * Writes all Vaults to a file
      *
      * @param filename File to write to
-     * @param vaults List of Vaults to serialize
+     * @param vaults   List of Vaults to serialize
      */
     private static void writeVaultStorage(String filename, List<Vault> vaults) {
         File f = new File(filename);

@@ -1,13 +1,29 @@
-public class Main {
-    public static void main(String[] args) {
-        VaultManager v = new VaultManager();
-        Client c = new Client(v);
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Map;
 
-        c.createNewVault("duy", "hello world");
-        c.createNewVault("michael", "secure password");
-        c.deleteVault("duy", "hello world");
-        c.createNewVault("duy", "hello world");
-//        v.updateVault("duy", Client.hashMasterKey("hello world"), "{\"google\":Gasdoasdoas, \"amazon.com\":aasdasda}");
-//        c.addVaultEntry("duy", "hello world", null);
+public class Main {
+    public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, UserDoesNotExistException {
+        Client c = new Client("denny", "secure password");
+        c.createNewVault();
+        c.addVaultEntry("google.com", "google password");
+        c.addVaultEntry("microsoft.com", "microsoft password");
+        c.addVaultEntry("facebook.com", "facebook password");
+        c.printPasswords();
+
+        System.out.println("Remove microsoft");
+        c.removeVaultEntry("microsoft.com");
+        c.printPasswords();
+
+        System.out.println("Remove facebook");
+        c.removeVaultEntry("facebook.com");
+        c.printPasswords();
+
+        System.out.println("Hello world");
     }
 }
