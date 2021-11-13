@@ -9,13 +9,20 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Base64;
+import java.util.Locale;
 import java.util.Map;
 
 public class Client {
     VaultManager vaultManager;
+    private String    user;
+    private SecretKey secretKey;
+    private String    hash;
 
-    public Client(String masterKey) {
+    public Client(String user, String masterKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        this.user = user;
         vaultManager = new VaultManager();
+        secretKey = getKeyFromPassword(masterKey, user);
+        hash = hashMasterKey(masterKey);
     }
 
     /**
@@ -47,20 +54,16 @@ public class Client {
      * <p>
      * All passwords are encrypted before adding to the vault
      *
-     * @param user
-     * @param masterKey A user specified password
-     * @param passwords A Map containing an identifier and a password for that identifier
+     * @param identifier Name to identify saved password. e.g. site domain
+     * @param password Password to encrypt and save
      */
-    public void addVaultEntry(String user, String masterKey, Map<String, String> passwords) throws NoSuchPaddingException, NoSuchAlgorithmException {
-        String authKey = hashMasterKey(masterKey);
-        Vault  v       = retrieveVault(user, masterKey);
+    public void addVaultEntry(String identifier, String password) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
+        Vault v = retrieveVault();
+        identifier = identifier.toLowerCase();
+        String encryptedPassword = encrypt(password, secretKey);
 
-        Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
-//        GCMParameterSpec s = new GCMParameterSpec()
-//        c.init(Cipher.ENCRYPT_MODE, KeyFactory.);
-        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-
-
+        v.getPasswords()
+         .put(identifier, encryptedPassword);
     }
 
     /**
@@ -69,9 +72,10 @@ public class Client {
      * @param user
      * @param masterKey A user specified password
      */
-    public void removeVaultEntry(String user, String masterKey) {
-        String authKey = hashMasterKey(masterKey);
-
+    public void removeVaultEntry(String identifier) {
+        Vault v = retrieveVault();
+        Map<String, String> passwords = v.getPasswords();
+        passwords.remove(identifier);
     }
 
     /**
@@ -81,9 +85,8 @@ public class Client {
      * @param masterKey A user specified password
      * @return A Vault object
      */
-    public Vault retrieveVault(String user, String masterKey) {
-        String authKey   = hashMasterKey(masterKey);
-        String vaultJson = vaultManager.retrieveVault(user, authKey);
+    public Vault retrieveVault() {
+        String vaultJson = vaultManager.retrieveVault(user, hash);
         Gson   gson      = new GsonBuilder().registerTypeAdapter(Vault.class, new VaultJson().nullSafe()).create();
         return gson.fromJson(vaultJson, Vault.class);
     }
@@ -96,16 +99,20 @@ public class Client {
      */
     public static String hashMasterKey(String masterKey) {
         try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(masterKey.getBytes());
-            byte[]        digest  = md.digest();
-            StringBuilder hexHash = new StringBuilder();
+            String hash = masterKey;
 
-            for (byte b : digest) {
-                hexHash.append(Integer.toHexString(0xFF & b));
+            for (int i = 0; i < 256; i++) {
+                MessageDigest md = MessageDigest.getInstance("SHA-256");
+                md.update(hash.getBytes());
+                byte[]        digest  = md.digest();
+                StringBuilder hexHash = new StringBuilder();
+
+                for (byte b : digest) {
+                    hexHash.append(Integer.toHexString(0xFF & b));
+                }
+                hash = hexHash.toString();
             }
-
-            return hexHash.toString();
+            return hash;
         } catch (NoSuchAlgorithmException n) {
             System.out.println(n.getMessage());
         }
@@ -117,7 +124,7 @@ public class Client {
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.ENCRYPT_MODE, key);
         byte[] cipherText = cipher.doFinal(input.getBytes());
-        
+
         return Base64.getEncoder()
                      .encodeToString(cipherText);
     }
@@ -126,7 +133,7 @@ public class Client {
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, key);
         byte[] cipherText = Base64.getDecoder().decode(input);
-        byte[] decoded = cipher.doFinal(cipherText);
+        byte[] decoded    = cipher.doFinal(cipherText);
 
         return new String(decoded);
     }
