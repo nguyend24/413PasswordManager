@@ -1,17 +1,21 @@
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import javax.crypto.*;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+import java.util.Base64;
 import java.util.Map;
 
 public class Client {
     VaultManager vaultManager;
 
-    public Client(VaultManager vaultManager) {
-        this.vaultManager = vaultManager;
+    public Client(String masterKey) {
+        vaultManager = new VaultManager();
     }
 
     /**
@@ -40,24 +44,28 @@ public class Client {
 
     /**
      * Add a new password entry or multiple entries to a user's vault
-     *
+     * <p>
      * All passwords are encrypted before adding to the vault
+     *
      * @param user
      * @param masterKey A user specified password
      * @param passwords A Map containing an identifier and a password for that identifier
      */
-    public void addVaultEntry(String user, String masterKey, Map<String, String> passwords) {
-//        String authKey = hashMasterKey(masterKey);
-//        Vault  v       = retrieveVault(user, masterKey);
-//        try {
-//            Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
-//        } catch (NoSuchPaddingException | NoSuchAlgorithmException ignored) {
-//        }
+    public void addVaultEntry(String user, String masterKey, Map<String, String> passwords) throws NoSuchPaddingException, NoSuchAlgorithmException {
+        String authKey = hashMasterKey(masterKey);
+        Vault  v       = retrieveVault(user, masterKey);
+
+        Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
+//        GCMParameterSpec s = new GCMParameterSpec()
+//        c.init(Cipher.ENCRYPT_MODE, KeyFactory.);
+        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+
 
     }
 
     /**
      * Remove a password entry from a user's vault
+     *
      * @param user
      * @param masterKey A user specified password
      */
@@ -103,5 +111,33 @@ public class Client {
         }
 
         return "";
+    }
+
+    public static String encrypt(String input, SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, key);
+        byte[] cipherText = cipher.doFinal(input.getBytes());
+        
+        return Base64.getEncoder()
+                     .encodeToString(cipherText);
+    }
+
+    public static String decrypt(String input, SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, key);
+        byte[] cipherText = Base64.getDecoder().decode(input);
+        byte[] decoded = cipher.doFinal(cipherText);
+
+        return new String(decoded);
+    }
+
+    public static SecretKey getKeyFromPassword(String password, String salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
+
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        KeySpec          spec    = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 65536, 256);
+        SecretKey secret = new SecretKeySpec(factory.generateSecret(spec)
+                                                    .getEncoded(), "AES");
+
+        return secret;
     }
 }
