@@ -8,7 +8,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
 
 public class Main {
-    public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, UserDoesNotExistException {
+    public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, UserDoesNotExistException, InvalidPasswordException {
         Client c = new Client("denny", "secure password");
         c.createNewVault();
         c.addVaultEntry("google.com", "google password");

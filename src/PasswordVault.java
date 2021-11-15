@@ -43,7 +43,7 @@ public class PasswordVault {
             VaultPanel vp = new VaultPanel(user, password, this);
             this.frame.setContentPane(vp);
             this.frame.revalidate();
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | InvalidPasswordException ex) {
             ex.printStackTrace();
         } catch (UserDoesNotExistException ue) {
             loginPanel.invalidLogin();

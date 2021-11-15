@@ -51,7 +51,7 @@ public class Client {
      * @param identifier Name to identify saved password. e.g. site domain
      * @param password   Password to encrypt and save
      */
-    public void addVaultEntry(String identifier, String password) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, UserDoesNotExistException {
+    public void addVaultEntry(String identifier, String password) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, UserDoesNotExistException, InvalidPasswordException {
         Vault v = retrieveVault();
         identifier = identifier.toLowerCase();
         String encryptedPassword = encrypt(password, secretKey);
@@ -68,7 +68,7 @@ public class Client {
      *
      * @param identifier Name to identify saved password. e.g. site domain
      */
-    public void removeVaultEntry(String identifier) throws UserDoesNotExistException {
+    public void removeVaultEntry(String identifier) throws UserDoesNotExistException, InvalidPasswordException {
         Vault               v         = retrieveVault();
         Map<String, String> passwords = v.getPasswords();
         passwords.remove(identifier);
@@ -82,13 +82,13 @@ public class Client {
      *
      * @return A Vault object
      */
-    public Vault retrieveVault() throws UserDoesNotExistException {
+    public Vault retrieveVault() throws UserDoesNotExistException, InvalidPasswordException {
         String vaultJson = vaultManager.retrieveVault(user, hash);
         Gson   gson      = new GsonBuilder().registerTypeAdapter(Vault.class, new VaultJson().nullSafe()).create();
         return gson.fromJson(vaultJson, Vault.class);
     }
 
-    public void printPasswords() throws UserDoesNotExistException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public void printPasswords() throws UserDoesNotExistException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidPasswordException {
         Vault               v         = retrieveVault();
         Map<String, String> passwords = v.getPasswords();
         for (String key : passwords.keySet()) {

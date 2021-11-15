@@ -23,18 +23,18 @@ public class VaultManager {
      * @param authKey Key to authenticate proper person is attempting to retrieve a vault
      * @return Json representation of a Vault
      */
-    public String retrieveVault(String user, String authKey) throws UserDoesNotExistException {
+    public String retrieveVault(String user, String authKey) throws UserDoesNotExistException, InvalidPasswordException {
         if (userExists(user)) {
             Vault v = findUserVault(user);
             if (v.getAuthKey().equals(authKey)) {
                 Gson gson = new GsonBuilder().registerTypeAdapter(Vault.class, new VaultJson().nullSafe()).create();
                 return gson.toJson(v);
+            } else {
+                throw new InvalidPasswordException("Invalid Password. Access Denied");
             }
         } else {
             throw new UserDoesNotExistException("User not found");
         }
-
-        return "{}";
     }
 
     /**
