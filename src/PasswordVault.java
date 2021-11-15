@@ -88,7 +88,9 @@ public class PasswordVault {
         try {
             Client client = new Client(user, password);
             Vault vault = client.retrieveVault();
-
+            VaultPanel vp = new VaultPanel(user, password, this);
+            this.frame.setContentPane(vp);
+            this.frame.revalidate();
         } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
             ex.printStackTrace();
         } catch (UserDoesNotExistException ue) {
@@ -98,6 +100,7 @@ public class PasswordVault {
 
     public void logout() {
         loginPanel = new LoginPanel(this);
+        frame.setContentPane(loginPanel);
         frame.revalidate();
     }
 
@@ -201,17 +204,14 @@ class LoginPanel extends JPanel {
     }
 }
 
-//class VaultPanel extends JPanel {
-//    VaultPanel(String user, String masterKey, Frame frame, Vault vault) {
-//        this.add(new JLabel(user));
-//        this.add(new JLabel(masterKey));
-//
-//        JButton logout = new JButton("Logout");
-//        logout.setAlignmentX(Component.CENTER_ALIGNMENT);
-//        logout.addActionListener(e -> {
-//            frame.setContentPane(new LoginPanel(frame));
-//            frame.revalidate();
-//        });
-//        this.add(logout);
-//    }
-//}
+class VaultPanel extends JPanel {
+    VaultPanel(String user, String masterKey, PasswordVault frame) {
+        this.add(new JLabel(user));
+        this.add(new JLabel(masterKey));
+
+        JButton logout = new JButton("Logout");
+        logout.setAlignmentX(Component.CENTER_ALIGNMENT);
+        logout.addActionListener(e -> frame.logout());
+        this.add(logout);
+    }
+}
