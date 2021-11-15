@@ -10,15 +10,6 @@ public class PasswordVault {
 
     private final JFrame     frame;
     private LoginPanel loginPanel;
-    private       JButton    addPasswordButton;
-    private       JButton    viewPasswordsButton;
-    private       JButton    deletePasswordButton;
-    private       JTextField enterUsernameTextField;
-    private       JTextField enterPasswordTextField;
-    private       JTextField nameTextField;
-    private       JTextField display;
-    private       JLabel     msg1;
-    private       JLabel     msg2;
 
     public PasswordVault() throws UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -29,45 +20,6 @@ public class PasswordVault {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         loginPanel = new LoginPanel(this);
-
-//        vaultManager = new VaultManager();
-//        client = new Client(vaultManager);
-//        JPanel panel1 = new JPanel();
-//        addPasswordButton = new JButton("Add Password");
-//        deletePasswordButton = new JButton("Delete Password");
-//        viewPasswordsButton = new JButton("View Passwords");
-//        enterUsernameTextField = new JTextField(20);
-//        enterPasswordTextField = new JTextField(20);
-//        nameTextField = new JTextField(20);
-//        display = new JTextField(20);
-//        msg1 = new JLabel("Enter username: ");
-//        msg2 = new JLabel("Enter password: ");
-//
-//
-//
-//        Listener listenForButton = new Listener();
-//        addPasswordButton.addActionListener(listenForButton);
-//        deletePasswordButton.addActionListener(listenForButton);
-//        viewPasswordsButton.addActionListener(listenForButton);
-//
-//        panel1.add(msg1);
-//        panel1.add(msg2);
-//        /*msg1.setHorizontalAlignment(SwingConstants.LEFT);
-//        msg2.setHorizontalAlignment(SwingConstants.LEFT);
-//        msg2.setVerticalAlignment(SwingConstants.BOTTOM);*/
-//
-//        panel1.add(enterUsernameTextField);
-//        panel1.add(enterPasswordTextField);
-//        panel1.add(nameTextField);
-//        panel1.add(display);
-//
-//        enterUsernameTextField.setHorizontalAlignment(SwingConstants.RIGHT);
-//        enterPasswordTextField.setHorizontalAlignment(SwingConstants.RIGHT);
-//
-//        panel1.add(addPasswordButton);
-//        panel1.add(deletePasswordButton);
-//        panel1.add(viewPasswordsButton);
-//        this.add(panel1);
     }
 
     public static void main(String[] args) throws UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException {
@@ -102,20 +54,6 @@ public class PasswordVault {
         loginPanel = new LoginPanel(this);
         frame.setContentPane(loginPanel);
         frame.revalidate();
-    }
-
-    class Listener implements ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (e.getSource() == addPasswordButton) {
-                display.setText("Will add record");
-            } else if (e.getSource() == deletePasswordButton) {
-                display.setText("Will delete record");
-            } else if (e.getSource() == viewPasswordsButton) {
-                display.setText("Will display records");
-            }
-        }
     }
 }
 
