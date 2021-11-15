@@ -25,7 +25,6 @@ public class PasswordVault {
     public static void main(String[] args) throws UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         PasswordVault vault = new PasswordVault();
         vault.start();
-        System.out.println("new line");
     }
 
     public void start() {
