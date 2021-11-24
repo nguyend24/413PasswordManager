@@ -177,17 +177,20 @@ public class VaultManager {
      *
      * @param filename File to read
      * @return A list of Vault
+     *
+     * Michael: Created a while loop with line variable to iterate through entire file
      */
     private static List<Vault> readVaultStorage(String filename) {
         File        f      = new File(filename);
         List<Vault> vaults = new ArrayList<>();
-
+        String line;
         try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
-            String line = reader.readLine();
-            Gson   gson = new GsonBuilder().registerTypeAdapter(Vault.class, new VaultJson()).create();
-            Vault  v    = gson.fromJson(line, Vault.class);
-            if (v != null) {
-                vaults.add(v);
+            while((line = reader.readLine()) != null){
+                Gson   gson = new GsonBuilder().registerTypeAdapter(Vault.class, new VaultJson()).create();
+                Vault  v    = gson.fromJson(line, Vault.class);
+                if (v != null) {
+                    vaults.add(v);
+                }
             }
         } catch (FileNotFoundException fileNotFoundException) {
             //Do nothing. There are no passwords currently stored.
