@@ -8,6 +8,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Locale;
 import java.util.Map;
@@ -88,12 +89,27 @@ public class Client {
         return gson.fromJson(vaultJson, Vault.class);
     }
 
-    public void printPasswords() throws UserDoesNotExistException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidPasswordException {
+    /***
+     * Michael: Changed return type to ArrayList and returned an arrayList containing all passwords
+     ***/
+    public ArrayList<String> printPasswords() throws UserDoesNotExistException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidPasswordException {
         Vault               v         = retrieveVault();
+        ArrayList<String> passwordList = new ArrayList<>();
         Map<String, String> passwords = v.getPasswords();
         for (String key : passwords.keySet()) {
-            System.out.println("key: " + decrypt(passwords.get(key), secretKey));
+            passwordList.add(decrypt(passwords.get(key), secretKey));
         }
+        return passwordList;
+    }
+
+    public ArrayList<String> printKeys() throws UserDoesNotExistException, InvalidPasswordException {
+        Vault V = retrieveVault();
+        ArrayList<String> keyList = new ArrayList<>();
+        Map<String, String> keys = V.passwords;
+        for(String key : keys.keySet()){
+            keyList.add(key);
+        }
+        return keyList;
     }
 
     /**
