@@ -1,1 +1,2 @@
-{"user":"denny","authKey":"6f97b29cbd523c8d0ce94e9ecc1522535f0fa15d41f46ca1861d5746277a0","passwords":{"google.com":"Ib3VmUzddOS72wMOdZRclA\u003d\u003d"}}
+{"user":"denny","authKey":"6f97b29cbd523c8d0ce94e9ecc1522535f0fa15d41f46ca1861d5746277a0","passwords":{"google.com":"Ib3VmUzddOS72wMOdZRclA\u003d\u003d","microsoft.com":"Va1wcfPULbW2FGBvst7KugShR8jjHOtaRJnijMgH2k4\u003d","facebook.com":"prxMeyq11Rx/tdZjRxIJjUXg0QcZqsnp01MgtKb/Mtk\u003d"}}
+{"user":"michael","authKey":"aed6815d4669efacd2a1399072b6b1bc13bae274e249abe8b561d1c23609d65","passwords":{"google.com":"XaNEOHEheWuq8Kt3zxihAA\u003d\u003d","aol.com":"xFwgW3fwIZ8/pCCoyFqzGw\u003d\u003d"}}
