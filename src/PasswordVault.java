@@ -152,10 +152,20 @@ class LoginPanel extends JPanel {
         /*
         Login button
          */
+        JPanel login1 = new JPanel();
         JButton login = new JButton("Login");
         login.addActionListener(e -> passwordVault.login(usernameField.getText(), new String(passwordField.getPassword())));
         login.setAlignmentX(Component.CENTER_ALIGNMENT);
-        this.add(login);
+        login1.add(login);
+
+        /*
+        New user button
+         */
+        JButton newUser = new JButton("New User");
+        newUser.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        login1.add(newUser);
+
+        this.add(login1);
     }
 }
 
