@@ -16,14 +16,18 @@ public class Main {
         c.addVaultEntry("facebook.com", "facebook password");
         c.printPasswords();
 
-        System.out.println("Remove microsoft");
-        c.removeVaultEntry("microsoft.com");
+      //  System.out.println("Remove microsoft");
+      //  c.removeVaultEntry("microsoft.com");
         c.printPasswords();
 
-        System.out.println("Remove facebook");
-        c.removeVaultEntry("facebook.com");
+     //   System.out.println("Remove facebook");
+     //   c.removeVaultEntry("facebook.com");
         c.printPasswords();
 
+        Client m = new Client("michael", "abc123");
+        m.createNewVault();
+        m.addVaultEntry("google.com", "password2021");
+        m.addVaultEntry("aol.com", "youGotMail");
         System.out.println("Hello world");
     }
 }
