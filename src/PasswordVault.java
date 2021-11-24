@@ -1,9 +1,18 @@
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Scanner;
 
 
 public class PasswordVault {
@@ -11,9 +20,9 @@ public class PasswordVault {
     private final JFrame     frame;
     private LoginPanel loginPanel;
 
+
     public PasswordVault() throws UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-
         frame = new JFrame();
         frame.setTitle("Password Vault");
         frame.setSize(600, 400);
@@ -22,7 +31,7 @@ public class PasswordVault {
         loginPanel = new LoginPanel(this);
     }
 
-    public static void main(String[] args) throws UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    public static void main(String[] args) throws UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException, FileNotFoundException {
         PasswordVault vault = new PasswordVault();
         vault.start();
     }
@@ -40,13 +49,21 @@ public class PasswordVault {
         try {
             Client client = new Client(user, password);
             Vault vault = client.retrieveVault();
-            VaultPanel vp = new VaultPanel(user, password, this);
+            VaultPanel vp = new VaultPanel(user, password, this, client);
             this.frame.setContentPane(vp);
             this.frame.revalidate();
         } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
             ex.printStackTrace();
         } catch (UserDoesNotExistException | InvalidPasswordException il) {
             loginPanel.invalidLogin();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
         }
     }
 
@@ -142,10 +159,27 @@ class LoginPanel extends JPanel {
     }
 }
 
+/***
+ * Michael: Displays value and its respective password
+ */
 class VaultPanel extends JPanel {
-    VaultPanel(String user, String masterKey, PasswordVault frame) {
+
+    ArrayList<String> info;
+    ArrayList<String> keyInfo;
+    JLabel displayKey;
+    JLabel displayPwd;
+    VaultPanel(String user, String masterKey, PasswordVault frame, Client client) throws InvalidPasswordException, UserDoesNotExistException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        client.retrieveVault();
         this.add(new JLabel(user));
         this.add(new JLabel(masterKey));
+        info = client.printPasswords();
+        keyInfo = client.printKeys();
+        for(int i = 0; i < info.size(); i++){
+            displayKey = new JLabel(keyInfo.get(i));
+            this.add(displayKey, BorderLayout.NORTH);
+            displayPwd = new JLabel(info.get(i));
+            this.add(displayPwd, BorderLayout.SOUTH);
+        }
 
         JButton logout = new JButton("Logout");
         logout.setAlignmentX(Component.CENTER_ALIGNMENT);
