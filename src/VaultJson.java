@@ -16,9 +16,19 @@ public class VaultJson extends TypeAdapter<Vault> {
         jsonWriter.name("user").value(vault.getUser());
         jsonWriter.name("authKey").value(vault.getAuthKey());
 
-        jsonWriter.name("passwords").beginObject();
-        for (String p : vault.getPasswords().keySet()) {
-            jsonWriter.name(p).value(vault.getPasswords().get(p));
+//        jsonWriter.name("passwords").beginObject();
+//        for (String p : vault.getPasswords().keySet()) {
+//            jsonWriter.name(p).value(vault.getPasswords().get(p));
+//        }
+
+        jsonWriter.name("accounts").beginObject();
+        for (String site : vault.getAccounts().keySet()) {
+            jsonWriter.name(site).beginObject();
+            String username = vault.getAccounts().get(site)[0];
+            String password = vault.getAccounts().get(site)[1];
+            jsonWriter.name("username").value(username);
+            jsonWriter.name("password").value(password);
+            jsonWriter.endObject();
         }
         jsonWriter.endObject();
 
@@ -38,14 +48,22 @@ public class VaultJson extends TypeAdapter<Vault> {
         jsonReader.nextName();
         jsonReader.beginObject();
 
-        Map<String, String> passwords = new LinkedHashMap<>();
+        Map<String, String[]> accounts = new LinkedHashMap<>();
         while (jsonReader.peek() != JsonToken.END_OBJECT) {
-            passwords.put(jsonReader.nextName(), jsonReader.nextString());
+            String site = jsonReader.nextName();
+            jsonReader.beginObject();
+            jsonReader.nextName();
+            String username = jsonReader.nextString();
+            jsonReader.nextName();
+            String password = jsonReader.nextString();
+            String[] account = {username, password};
+            accounts.put(site, account);
+            jsonReader.endObject();
         }
         jsonReader.endObject();
 
         jsonReader.endObject();
 
-        return new Vault(user, authKey, passwords);
+        return new Vault(user, authKey, accounts);
     }
 }

@@ -2,16 +2,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import javax.crypto.*;
-import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class Client {
     private final VaultManager vaultManager;
@@ -52,16 +48,15 @@ public class Client {
      * @param identifier Name to identify saved password. e.g. site domain
      * @param password   Password to encrypt and save
      */
-    public void addVaultEntry(String identifier, String password) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, UserDoesNotExistException, InvalidPasswordException {
+    public void addVaultEntry(String identifier, String username, String password) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, UserDoesNotExistException, InvalidPasswordException {
         Vault v = retrieveVault();
         identifier = identifier.toLowerCase();
-        String encryptedPassword = encrypt(password, secretKey);
 
-        v.getPasswords()
-         .put(identifier, encryptedPassword);
+        String[] account = {username, password};
+        v.getAccounts()
+         .put(identifier, account);
 
-        String passwordsJson = new Gson().toJson(v.getPasswords(), Map.class);
-        vaultManager.updateVault(user, hash, passwordsJson);
+        vaultManager.updateVault(user, hash, v);
     }
 
     /**
@@ -69,13 +64,12 @@ public class Client {
      *
      * @param identifier Name to identify saved password. e.g. site domain
      */
-    public void removeVaultEntry(String identifier) throws UserDoesNotExistException, InvalidPasswordException {
+    public void removeVaultEntry(String identifier) throws UserDoesNotExistException, InvalidPasswordException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         Vault               v         = retrieveVault();
-        Map<String, String> passwords = v.getPasswords();
-        passwords.remove(identifier);
+        Map<String, String[]> accounts = v.getAccounts();
+        accounts.remove(identifier);
 
-        String passwordsJson = new Gson().toJson(v.getPasswords(), Map.class);
-        vaultManager.updateVault(user, hash, passwordsJson);
+        vaultManager.updateVault(user, hash, v);
     }
 
     /**
@@ -83,9 +77,10 @@ public class Client {
      *
      * @return A Vault object
      */
-    public Vault retrieveVault() throws UserDoesNotExistException, InvalidPasswordException {
+    public Vault retrieveVault() throws UserDoesNotExistException, InvalidPasswordException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         String vaultJson = vaultManager.retrieveVault(user, hash);
         Gson   gson      = new GsonBuilder().registerTypeAdapter(Vault.class, new VaultJson().nullSafe()).create();
+
         return gson.fromJson(vaultJson, Vault.class);
     }
 
@@ -93,22 +88,22 @@ public class Client {
      * Michael: Changed return type to ArrayList and returned an arrayList containing all passwords
      ***/
     public ArrayList<String> printPasswords() throws UserDoesNotExistException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidPasswordException {
-        Vault               v         = retrieveVault();
-        ArrayList<String> passwordList = new ArrayList<>();
-        Map<String, String> passwords = v.getPasswords();
-        for (String key : passwords.keySet()) {
-            passwordList.add(decrypt(passwords.get(key), secretKey));
-        }
+        Vault               v            = retrieveVault();
+        ArrayList<String>   passwordList = new ArrayList<>();
+        Map<String, String[]> passwords    = v.getAccounts();
+//        for (String key : passwords.keySet()) {
+//            passwordList.add(decrypt(passwords.get(key), secretKey));
+//        }
         return passwordList;
     }
 
-    public ArrayList<String> printKeys() throws UserDoesNotExistException, InvalidPasswordException {
-        Vault V = retrieveVault();
-        ArrayList<String> keyList = new ArrayList<>();
-        Map<String, String> keys = V.passwords;
-        for(String key : keys.keySet()){
-            keyList.add(key);
-        }
+    public ArrayList<String> printKeys() throws UserDoesNotExistException, InvalidPasswordException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        Vault               V       = retrieveVault();
+        ArrayList<String>   keyList = new ArrayList<>();
+//        Map<String, String> keys    = V.accounts;
+//        for (String key : keys.keySet()) {
+//            keyList.add(key);
+//        }
         return keyList;
     }
 

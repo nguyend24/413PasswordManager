@@ -8,12 +8,12 @@ import java.util.Map;
 public class Vault {
     private final String user;
     private final String authKey;
-    Map<String, String> passwords;
+    Map<String, String[]> accounts;
 
-    public Vault(String user, String authKey, Map<String, String> passwords) {
+    public Vault(String user, String authKey, Map<String, String[]> accounts) {
         this.user = user;
         this.authKey = authKey;
-        this.passwords = passwords;
+        this.accounts = accounts;
     }
 
     public Vault(String user, String authKey, String passwords) {
@@ -22,7 +22,7 @@ public class Vault {
 
         Type type = new TypeToken<Map<String, String>>() {
         }.getType();
-        this.passwords = new Gson().fromJson(passwords, type);
+        this.accounts = new Gson().fromJson(passwords, type);
     }
 
     public String getUser() {
@@ -33,8 +33,8 @@ public class Vault {
         return authKey;
     }
 
-    public Map<String, String> getPasswords() {
-        return passwords;
+    public Map<String, String[]> getAccounts() {
+        return accounts;
     }
 
     @Override

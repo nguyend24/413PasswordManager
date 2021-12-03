@@ -48,9 +48,9 @@ public class VaultManager {
         if (userExists(user)) {
             //Error, can't create a new vault if a user exists
         } else {
-            Map<String, String> passwordsMap = new Gson().fromJson(passwords, new TypeToken<Map<String, String>>() {
+            Map<String, String[]> accountsMap = new Gson().fromJson(passwords, new TypeToken<Map<String, String[]>>() {
             }.getType());
-            Vault v = new Vault(user, authKey, passwordsMap);
+            Vault v = new Vault(user, authKey, accountsMap);
             vaults.add(v);
         }
 
@@ -64,13 +64,12 @@ public class VaultManager {
      * @param authKey   Key to authenticate user attempting to update the Vault
      * @param passwords A new and modified list of passwords
      */
-    public void updateVault(String user, String authKey, String passwords) {
+    public void updateVault(String user, String authKey, Vault vault) {
         if (userExists(user)) {
             Vault v      = findUserVault(user);
             int   vIndex = findUserVaultIndex(user);
             if (v.getAuthKey().equals(authKey)) {
-                Vault newVault = new Vault(user, authKey, passwords);
-                vaults.set(vIndex, newVault);
+                vaults.set(vIndex, vault);
             }
         }
 
