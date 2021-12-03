@@ -90,10 +90,10 @@ public class Client {
     public ArrayList<String> printPasswords() throws UserDoesNotExistException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidPasswordException {
         Vault               v            = retrieveVault();
         ArrayList<String>   passwordList = new ArrayList<>();
-        Map<String, String[]> passwords    = v.getAccounts();
-//        for (String key : passwords.keySet()) {
-//            passwordList.add(decrypt(passwords.get(key), secretKey));
-//        }
+        Map<String, String[]> accounts    = v.getAccounts();
+        for (String key : accounts.keySet()) {
+            System.out.println("u: " + accounts.get(key)[0] + " p: " + accounts.get(key)[1]);
+        }
         return passwordList;
     }
 

@@ -1,1 +1,1 @@
-{"user":"denny","authKey":"6f97b29cbd523c8d0ce94e9ecc1522535f0fa15d41f46ca1861d5746277a0","accounts":{"google.com":{"username":"googleuser","password":"google password"},"microsoft.com":{"username":"microsoft user","password":"microsoft password"},"facebook.com":{"username":"facebook user","password":"facebook password"}}}
+{"user":"denny","authKey":"6f97b29cbd523c8d0ce94e9ecc1522535f0fa15d41f46ca1861d5746277a0","accounts":{"google.com":{"username":"googleuser","password":"google password"}}}
