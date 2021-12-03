@@ -3,11 +3,14 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.io.FileNotFoundException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
 
 
 public class PasswordVault {
@@ -20,7 +23,7 @@ public class PasswordVault {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         frame = new JFrame();
         frame.setTitle("Password Vault");
-        frame.setSize(600, 400);
+        frame.setSize(800, 400);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         loginPanel = new LoginPanel(this);
@@ -47,18 +50,10 @@ public class PasswordVault {
             VaultPanel vp = new VaultPanel(user, password, this, client);
             this.frame.setContentPane(vp);
             this.frame.revalidate();
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InvalidKeyException ex) {
             ex.printStackTrace();
         } catch (UserDoesNotExistException | InvalidPasswordException il) {
             loginPanel.invalidLogin();
-        } catch (NoSuchPaddingException e) {
-            e.printStackTrace();
-        } catch (IllegalBlockSizeException e) {
-            e.printStackTrace();
-        } catch (BadPaddingException e) {
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
         }
     }
 
@@ -178,8 +173,14 @@ class VaultPanel extends JPanel {
     JLabel displayKey;
     JLabel displayPwd;
 
-    private JList<String> sites;
-    private JList<String> passwords;
+    private final DefaultListModel<String> sitesListModel;
+    private final JList<String> sitesList;
+
+    private final DefaultListModel<String> usernamesListModel;
+    private final JList<String> usernamesList;
+
+    private DefaultListModel<String> passwordsListModel;
+    private final JList<String> passwordsList;
 
     VaultPanel(String user, String masterKey, PasswordVault frame, Client client) throws InvalidPasswordException, UserDoesNotExistException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
 //        client.retrieveVault();
@@ -193,44 +194,135 @@ class VaultPanel extends JPanel {
 //            displayPwd = new JLabel(info.get(i));
 //            this.add(displayPwd, BorderLayout.SOUTH);
 //        }
+        this.setLayout(new BorderLayout());
+        JPanel vaultDisplay = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
 
-        this.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 10));
         Vault v = client.retrieveVault();
 
-        sites = new JList<>(v.getAccounts().keySet().toArray(new String[0]));
-        passwords = new JList<>(v.getAccounts().values().toArray(new String[0]));
+        sitesListModel = new DefaultListModel<>();
+        v.getAccounts().keySet().forEach(sitesListModel::addElement);
+        sitesList = new JList<>(sitesListModel);
 
-        sites.addListSelectionListener(e -> synchronizeSelection(sites.getSelectedIndex()));
-        passwords.addListSelectionListener(e -> synchronizeSelection(passwords.getSelectedIndex()));
+        usernamesListModel = new DefaultListModel<>();
+        v.getAccounts().values().forEach(u -> usernamesListModel.addElement(u[0]));
+        usernamesList = new JList<>(usernamesListModel);
+
+        passwordsListModel = new DefaultListModel<>();
+        v.getAccounts().values().forEach(u -> passwordsListModel.addElement(u[1]));
+        passwordsList = new JList<>(passwordsListModel);
+
+        sitesList.addListSelectionListener(e -> synchronizeSelection(sitesList.getSelectedIndex()));
+        usernamesList.addListSelectionListener(e -> synchronizeSelection(usernamesList.getSelectedIndex()));
+        passwordsList.addListSelectionListener(e -> synchronizeSelection(passwordsList.getSelectedIndex()));
 
         Dimension listDimension = new Dimension(200, frame.getFrame().getHeight());
         System.out.println(this.getHeight());
 
-        JScrollPane siteScroller = new JScrollPane(sites);
+        JScrollPane siteScroller = new JScrollPane(sitesList);
         siteScroller.setPreferredSize(listDimension);
         JScrollBar siteScrollBar = siteScroller.getVerticalScrollBar();
 
-        JScrollPane passwordScroller = new JScrollPane(passwords);
+        JScrollPane usernameScroller = new JScrollPane(usernamesList);
+        usernameScroller.setPreferredSize(listDimension);
+        usernameScroller.setVerticalScrollBar(siteScrollBar);
+
+        JScrollPane passwordScroller = new JScrollPane(passwordsList);
         passwordScroller.setPreferredSize(listDimension);
         passwordScroller.setVerticalScrollBar(siteScrollBar);
 
-        this.add(siteScroller);
-        this.add(passwordScroller);
+        vaultDisplay.add(siteScroller);
+        vaultDisplay.add(usernameScroller);
+        vaultDisplay.add(passwordScroller);
 
-        this.add(new Box.Filler(
+        vaultDisplay.add(new Box.Filler(
             new Dimension(0, 0),
             new Dimension(25, this.getHeight()),
             new Dimension(25, this.getHeight())
         ));
+
+        this.add(vaultDisplay, BorderLayout.CENTER);
+
+        this.add(new Box.Filler(
+            new Dimension(0, 0),
+            new Dimension(1, 15),
+            new Dimension(5, 15)),BorderLayout.PAGE_END);
+
+        JPanel actionButtons = new JPanel();
+        actionButtons.setLayout(new BoxLayout(actionButtons, BoxLayout.Y_AXIS));
+
+
         JButton logout = new JButton("Logout");
         logout.setAlignmentX(Component.CENTER_ALIGNMENT);
         logout.addActionListener(e -> frame.logout());
-        this.add(logout);
+        actionButtons.add(logout);
+
+        JButton addEntry = new JButton("Add Entry");
+        addEntry.setAlignmentX(Component.CENTER_ALIGNMENT);
+        addEntry.addActionListener(e -> {
+            JTextField siteIdentifier = new JTextField(15);
+            JTextField username = new JTextField(15);
+            JTextField password = new JTextField(15);
+
+            JPanel newEntryInfo = new JPanel();
+            newEntryInfo.add(new JLabel("Site Indentifier"));
+            newEntryInfo.add(siteIdentifier);
+            newEntryInfo.add(new JLabel("Username"));
+            newEntryInfo.add(username);
+            newEntryInfo.add(new JLabel("Password"));
+            newEntryInfo.add(password);
+
+            int result = JOptionPane.showConfirmDialog(null, newEntryInfo, "Enter Account information", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.OK_OPTION) {
+                try {
+                    client.addVaultEntry(siteIdentifier.getText(), username.getText(), password.getText());
+                    sitesListModel.addElement(siteIdentifier.getText());
+                    usernamesListModel.addElement(username.getText());
+                    passwordsListModel.addElement(password.getText());
+                } catch (NoSuchPaddingException | InvalidPasswordException | UserDoesNotExistException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException ex) {
+                    ex.printStackTrace();
+                }
+            }
+
+            vaultDisplay.revalidate();
+        });
+        actionButtons.add(addEntry);
+
+        JButton removeEntry = new JButton("Remove Entry");
+        removeEntry.setAlignmentX(Component.CENTER_ALIGNMENT);
+        removeEntry.addActionListener(e -> {
+            try {
+                client.removeVaultEntry(sitesList.getSelectedValue());
+            } catch (UserDoesNotExistException | InvalidPasswordException | IllegalBlockSizeException | NoSuchPaddingException | NoSuchAlgorithmException | BadPaddingException | InvalidKeyException ex) {
+                ex.printStackTrace();
+            }
+
+            sitesListModel.removeElementAt(sitesList.getSelectedIndex());
+            usernamesListModel.removeElementAt(usernamesList.getSelectedIndex());
+            passwordsListModel.removeElementAt(passwordsList.getSelectedIndex());
+
+            frame.revalidate();
+        });
+        actionButtons.add(removeEntry);
+
+        //Button for copying the username for the selected entry to the clipboard
+        JButton copyUsername = new JButton("Copy Username");
+        copyUsername.setAlignmentX(Component.CENTER_ALIGNMENT);
+        copyUsername.addActionListener(e -> Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(usernamesList.getSelectedValue()), null));
+        actionButtons.add(copyUsername);
+
+        //Button for copying the password for the selected entry to the clipboard
+        JButton copyPassword = new JButton("Copy Password");
+        copyPassword.setAlignmentX(Component.CENTER_ALIGNMENT);
+        copyPassword.addActionListener(e -> Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(passwordsList.getSelectedValue()), null));
+        actionButtons.add(copyPassword);
+
+        this.add(actionButtons, BorderLayout.LINE_END);
     }
 
     private void synchronizeSelection(int index) {
-        sites.setSelectedIndex(index);
-        passwords.setSelectedIndex(index);
+        sitesList.setSelectedIndex(index);
+        usernamesList.setSelectedIndex(index);
+        passwordsList.setSelectedIndex(index);
     }
 }
 

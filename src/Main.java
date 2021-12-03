@@ -17,15 +17,15 @@ public class Main {
 //        for (int i = 0; i < 10; i++) {
 //            c.addVaultEntry(String.valueOf(Math.random()), String.valueOf(Math.random()));
 //        }
-        c.printPasswords();
-
-        System.out.println("Remove microsoft");
-        c.removeVaultEntry("microsoft.com");
-        c.printPasswords();
-
-        System.out.println("Remove facebook");
-        c.removeVaultEntry("facebook.com");
-        c.printPasswords();
+//        c.printPasswords();
+//
+//        System.out.println("Remove microsoft");
+//        c.removeVaultEntry("microsoft.com");
+//        c.printPasswords();
+//
+//        System.out.println("Remove facebook");
+//        c.removeVaultEntry("facebook.com");
+//        c.printPasswords();
 
 //        Client m = new Client("michael", "abc123");
 //        m.createNewVault();

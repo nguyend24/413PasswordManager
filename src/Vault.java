@@ -7,8 +7,8 @@ import java.util.Map;
 
 public class Vault {
     private final String user;
-    private final String authKey;
-    Map<String, String[]> accounts;
+    private final String                authKey;
+    private final Map<String, String[]> accounts;
 
     public Vault(String user, String authKey, Map<String, String[]> accounts) {
         this.user = user;
