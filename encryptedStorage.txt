@@ -1,1 +1,6 @@
-{"user":"denny","authKey":"6f97b29cbd523c8d0ce94e9ecc1522535f0fa15d41f46ca1861d5746277a0","accounts":{"google.com":{"username":"googleuser","password":"google password"},"microsoft.com":{"username":"microsoft user","password":"microsoft password"},"facebook.com":{"username":"facebook user","password":"facebook password"},"youtube.com":{"username":"youtube user","password":"youtube password"}}}
+{"user":"denny","authKey":"6f97b29cbd523c8d0ce94e9ecc1522535f0fa15d41f46ca1861d5746277a0","accounts":{"google.com":{"username":"googleuser","password":"google password"},"microsoft.com":{"username":"microsoft user","password":"microsoft password"},"facebook.com":{"username":"facebook user","password":"facebook password"}}}
+{"user":"michael1","authKey":"6df5b71d51d459740d91faa1ccc1026bc38114ec86d51c9d1d8ed4b6e88453","accounts":{}}
+{"user":"michael2","authKey":"eb6810de9642bdf5e76757e3897c32ef477e41a35671265cac6b4165fca8c9d1","accounts":{}}
+{"user":"a","authKey":"78fbcadc73163f1576d2b4441cdfd6b3687e82b849c3f218d717067d2c43","accounts":{}}
+{"user":"aa","authKey":"ce3114b41d34f3ea11c3d774de11fb7937916c670462380a8c9f4bc06b557e","accounts":{}}
+{"user":"aaa","authKey":"80dc627c6b4e39f19ef6d2e342301c3c374837aa07aa62f423f47be3333963","accounts":{}}

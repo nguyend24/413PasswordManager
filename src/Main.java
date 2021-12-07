@@ -14,23 +14,6 @@ public class Main {
         c.addVaultEntry("google.com", "googleuser", "google password");
         c.addVaultEntry("microsoft.com", "microsoft user","microsoft password");
         c.addVaultEntry("facebook.com", "facebook user", "facebook password");
-//        for (int i = 0; i < 10; i++) {
-//            c.addVaultEntry(String.valueOf(Math.random()), String.valueOf(Math.random()));
-//        }
-//        c.printPasswords();
-//
-//        System.out.println("Remove microsoft");
-//        c.removeVaultEntry("microsoft.com");
-//        c.printPasswords();
-//
-//        System.out.println("Remove facebook");
-//        c.removeVaultEntry("facebook.com");
-//        c.printPasswords();
 
-//        Client m = new Client("michael", "abc123");
-//        m.createNewVault();
-//        m.addVaultEntry("google.com", "password2021");
-//        m.addVaultEntry("aol.com", "youGotMail");
-        System.out.println("Hello world");
     }
 }

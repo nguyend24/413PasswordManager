@@ -6,6 +6,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 
 public class VaultManager {
@@ -82,7 +83,7 @@ public class VaultManager {
      * @param user    The user of the Vault to delete
      * @param authKey Key to authenticate user attempting to delete a Vault
      */
-    public void deleteVault(String user, String authKey) {
+    public void deleteVault(String user, String authKey) throws IOException {
         if (userExists(user)) {
             Vault v = findUserVault(user);
 
@@ -92,7 +93,7 @@ public class VaultManager {
         } else {
             //User doesn't exist, no need to delete
         }
-
+        writeVaultStorage(VAULT_FILE, vaults);
     }
 
     /**
@@ -170,6 +171,7 @@ public class VaultManager {
             System.exit(- 1);
         }
     }
+
 
     /**
      * Reads a file and deseralize into a list of Vaults

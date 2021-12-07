@@ -4,6 +4,7 @@ import com.google.gson.GsonBuilder;
 import javax.crypto.*;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
@@ -36,7 +37,7 @@ public class Client {
      *
      * @param user User of Vault being deleted
      */
-    public void deleteVault(String user) {
+    public void deleteVault(String user) throws IOException {
         vaultManager.deleteVault(user, hash);
     }
 
