@@ -5,12 +5,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
+
 
 
 public class PasswordVault {
@@ -28,6 +27,7 @@ public class PasswordVault {
 
         loginPanel = new LoginPanel(this);
     }
+
 
     public static void main(String[] args) throws UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException, FileNotFoundException {
         PasswordVault vault = new PasswordVault();
@@ -55,6 +55,13 @@ public class PasswordVault {
         } catch (UserDoesNotExistException | InvalidPasswordException il) {
             loginPanel.invalidLogin();
         }
+    }
+    public void createNewUser(){
+
+        newUserPanel newUser = new newUserPanel(this);
+
+        this.frame.setContentPane(newUser);
+        this.frame.revalidate();
     }
 
     public void logout() {
@@ -156,6 +163,7 @@ class LoginPanel extends JPanel {
         New user button
          */
         JButton newUser = new JButton("New User");
+        newUser.addActionListener(e-> passwordVault.createNewUser());
         newUser.setAlignmentX(Component.RIGHT_ALIGNMENT);
         login1.add(newUser);
 
@@ -163,15 +171,94 @@ class LoginPanel extends JPanel {
     }
 }
 
+class newUserPanel extends JPanel{
+    private final PasswordVault frame;
+    newUserPanel(PasswordVault frame){
+        this.frame = frame;
+        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        JPanel newUserDisplay = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
+        JPanel password = new JPanel();
+        JPanel username = new JPanel();
+        JPanel actionButtons = new JPanel();
+        JButton create = new JButton("Create Vault");
+        JLabel createUsername = new JLabel("Enter Username: ");
+        JTextField userNameField = new JTextField(20);
+        username.add(createUsername);
+        username.add(userNameField);
+        JLabel createMasterPassword = new JLabel("Enter Password: ");
+        JPasswordField passWordField = new JPasswordField(20);
+        password.add(createMasterPassword);
+        password.add(passWordField);
+
+
+        create.setAlignmentX(Component.CENTER_ALIGNMENT);
+            create.addActionListener(e -> {
+                try {
+                    createNewUser(userNameField.getText(), new String(passWordField.getPassword()));
+                } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
+                    ex.printStackTrace();
+                }
+            });
+            create.addActionListener((e-> {
+                try {
+                    successfulNewUser(frame);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }));
+        actionButtons.add(create);
+
+
+
+
+        JButton logout = new JButton("Back");
+        logout.setAlignmentX(Component.CENTER_ALIGNMENT);
+        logout.addActionListener(e -> frame.logout());
+        actionButtons.add(logout);
+
+        newUserDisplay.add(username);
+        newUserDisplay.add(password);
+        newUserDisplay.add(actionButtons);
+
+        this.add(newUserDisplay, BorderLayout.WEST);
+        newUserDisplay.revalidate();
+    }
+
+        //Message to be displayed if vault creation is successful
+    void successfulNewUser(PasswordVault frame) throws InterruptedException {
+        this.removeAll();
+
+        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        JPanel successfulUserDisplay = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
+
+        JLabel successfulCreation = new JLabel("Vault successfully created! Please go back and re-login");
+        successfulCreation.setAlignmentX(Component.CENTER_ALIGNMENT);
+        successfulCreation.setForeground(Color.GREEN);
+        successfulUserDisplay.add(successfulCreation);
+
+        JButton logout = new JButton("Back");
+        logout.setAlignmentX(Component.CENTER_ALIGNMENT);
+        logout.addActionListener(e -> frame.logout());
+        successfulUserDisplay.add(logout);
+
+
+        this.add(successfulUserDisplay, BorderLayout.WEST);
+        successfulUserDisplay.revalidate();
+    }
+
+
+    void createNewUser(String username, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        Client c = new Client(username, password);
+        c.createNewVault();
+    }
+
+}
+
 /***
  * Michael: Displays value and its respective password
  */
 class VaultPanel extends JPanel {
 
-    ArrayList<String> info;
-    ArrayList<String> keyInfo;
-    JLabel displayKey;
-    JLabel displayPwd;
 
     private final DefaultListModel<String> sitesListModel;
     private final JList<String> sitesList;
@@ -183,17 +270,7 @@ class VaultPanel extends JPanel {
     private final JList<String> passwordsList;
 
     VaultPanel(String user, String masterKey, PasswordVault frame, Client client) throws InvalidPasswordException, UserDoesNotExistException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-//        client.retrieveVault();
-//        this.add(new JLabel(user));
-//        this.add(new JLabel(masterKey));
-//        info = client.printPasswords();
-//        keyInfo = client.printKeys();
-//        for(int i = 0; i < info.size(); i++){
-//            displayKey = new JLabel(keyInfo.get(i));
-//            this.add(displayKey, BorderLayout.NORTH);
-//            displayPwd = new JLabel(info.get(i));
-//            this.add(displayPwd, BorderLayout.SOUTH);
-//        }
+
         this.setLayout(new BorderLayout());
         JPanel vaultDisplay = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
 
@@ -233,7 +310,14 @@ class VaultPanel extends JPanel {
         vaultDisplay.add(siteScroller);
         vaultDisplay.add(usernameScroller);
         vaultDisplay.add(passwordScroller);
-
+        /**
+        JLabel usernameColumn = new JLabel("Usernames");
+        JLabel passwordColumn = new JLabel("Passwords");
+        JLabel websiteColumn = new JLabel("Websites");
+        vaultDisplay.add(usernameColumn);
+        vaultDisplay.add(passwordColumn);
+        vaultDisplay.add(websiteColumn);
+        **/
         vaultDisplay.add(new Box.Filler(
             new Dimension(0, 0),
             new Dimension(25, this.getHeight()),
@@ -317,6 +401,16 @@ class VaultPanel extends JPanel {
         actionButtons.add(copyPassword);
 
         this.add(actionButtons, BorderLayout.LINE_END);
+        JButton deleteUser = new JButton("Delete User");
+        deleteUser.setAlignmentX(Component.CENTER_ALIGNMENT);
+        deleteUser.addActionListener(e-> {
+            try {
+                deleteUser(user, client, frame);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        });
+        actionButtons.add(deleteUser);
     }
 
     private void synchronizeSelection(int index) {
@@ -324,10 +418,9 @@ class VaultPanel extends JPanel {
         usernamesList.setSelectedIndex(index);
         passwordsList.setSelectedIndex(index);
     }
-}
 
-class NewUserPanel extends JPanel{
-    public NewUserPanel() {
-
+    private void deleteUser(String user, Client client, PasswordVault frame) throws IOException {
+        client.deleteVault(user);
+        frame.logout();
     }
 }
