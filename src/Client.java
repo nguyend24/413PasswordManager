@@ -18,8 +18,8 @@ public class Client {
 
     public Client(String user, String masterKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
         this.user = user;
-        vaultManager = new VaultManager();
         secretKey = getKeyFromPassword(masterKey, user);
+        vaultManager = new VaultManager(getSecretKey());
         hash = hashMasterKey(masterKey);
     }
 
@@ -135,6 +135,10 @@ public class Client {
         }
 
         return "";
+    }
+
+    public SecretKey getSecretKey() {
+        return secretKey;
     }
 
     /**

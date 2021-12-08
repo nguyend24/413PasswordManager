@@ -2,19 +2,26 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import java.io.*;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 
 public class VaultManager {
     static final  String      VAULT_FILE = "encryptedStorage.txt";
     private final List<Vault> vaults;
+    private final SecretKey   secretKey;
 
-    public VaultManager() {
-        vaults = readVaultStorage(VAULT_FILE);
+    public VaultManager(SecretKey secretKey) {
+        this.secretKey = secretKey;
+        vaults = readVaultStorage(VAULT_FILE, secretKey);
     }
 
     /**
@@ -55,15 +62,15 @@ public class VaultManager {
             vaults.add(v);
         }
 
-        writeVaultStorage(VAULT_FILE, vaults);
+        writeVaultStorage(VAULT_FILE, vaults, secretKey);
     }
 
     /**
      * Overwrites the currently saved vault with a new modified list of passwords
      *
-     * @param user      The user of the Vault to modify
-     * @param authKey   Key to authenticate user attempting to update the Vault
-     * @param passwords A new and modified list of passwords
+     * @param user    The user of the Vault to modify
+     * @param authKey Key to authenticate user attempting to update the Vault
+     * @param vault   A new and modified Vault
      */
     public void updateVault(String user, String authKey, Vault vault) {
         if (userExists(user)) {
@@ -74,7 +81,7 @@ public class VaultManager {
             }
         }
 
-        writeVaultStorage(VAULT_FILE, vaults);
+        writeVaultStorage(VAULT_FILE, vaults, secretKey);
     }
 
     /**
@@ -93,7 +100,7 @@ public class VaultManager {
         } else {
             //User doesn't exist, no need to delete
         }
-        writeVaultStorage(VAULT_FILE, vaults);
+        writeVaultStorage(VAULT_FILE, vaults, secretKey);
     }
 
     /**
@@ -156,17 +163,18 @@ public class VaultManager {
     /**
      * Writes all Vaults to a file
      *
-     * @param filename File to write to
-     * @param vaults   List of Vaults to serialize
+     * @param filename  File to write to
+     * @param vaults    List of Vaults to serialize
+     * @param secretKey Secret key to use to encrypt the vault
      */
-    private static void writeVaultStorage(String filename, List<Vault> vaults) {
+    private static void writeVaultStorage(String filename, List<Vault> vaults, SecretKey secretKey) {
         File f = new File(filename);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(f))) {
             for (Vault v : vaults) {
-                writer.write(v.toString());
+                writer.write(v.toString(secretKey));
                 writer.write("\n");
             }
-        } catch (IOException io) {
+        } catch (IOException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | BadPaddingException | InvalidKeyException io) {
             io.printStackTrace();
             System.exit(- 1);
         }
@@ -176,26 +184,34 @@ public class VaultManager {
     /**
      * Reads a file and deseralize into a list of Vaults
      *
-     * @param filename File to read
+     * @param filename  File to read
+     * @param secretKey
      * @return A list of Vault
-     *
+     * <p>
      * Michael: Created a while loop with line variable to iterate through entire file
      */
-    private static List<Vault> readVaultStorage(String filename) {
+    private static List<Vault> readVaultStorage(String filename, SecretKey secretKey) {
         File        f      = new File(filename);
         List<Vault> vaults = new ArrayList<>();
-        String line;
+        String      line;
         try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
-            while((line = reader.readLine()) != null){
-                Gson   gson = new GsonBuilder().registerTypeAdapter(Vault.class, new VaultJson()).create();
-                Vault  v    = gson.fromJson(line, Vault.class);
+            while ((line = reader.readLine()) != null) {
+                Gson  gson = new GsonBuilder().registerTypeAdapter(Vault.class, new VaultJson()).create();
+                Vault v    = gson.fromJson(line, Vault.class);
                 if (v != null) {
+
+                    for (String k : v.getAccounts().keySet()) {
+                        String[] loginDetails = {k, Client.decrypt(v.getAccounts().get(k)[1], secretKey)};
+                        v.getAccounts().put(k, loginDetails);
+                    }
+
+
                     vaults.add(v);
                 }
             }
         } catch (FileNotFoundException fileNotFoundException) {
             //Do nothing. There are no passwords currently stored.
-        } catch (IOException ioException) {
+        } catch (IOException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | BadPaddingException | InvalidKeyException ioException) {
             ioException.printStackTrace();
         }
 
