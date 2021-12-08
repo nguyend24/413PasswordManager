@@ -1,1 +1,1 @@
-{"user":"denny","authKey":"6f97b29cbd523c8d0ce94e9ecc1522535f0fa15d41f46ca1861d5746277a0","accounts":{"google.com":{"username":"google.com","password":"Ib3VmUzddOS72wMOdZRclA\u003d\u003d"},"microsoft.com":{"username":"microsoft.com","password":"Va1wcfPULbW2FGBvst7KugShR8jjHOtaRJnijMgH2k4\u003d"},"facebook.com":{"username":"facebook.com","password":"prxMeyq11Rx/tdZjRxIJjUXg0QcZqsnp01MgtKb/Mtk\u003d"}}}
+{"user":"denny","authKey":"6f97b29cbd523c8d0ce94e9ecc1522535f0fa15d41f46ca1861d5746277a0","accounts":{}}

@@ -362,8 +362,10 @@ class VaultPanel extends JPanel {
                     sitesListModel.addElement(siteIdentifier.getText());
                     usernamesListModel.addElement(username.getText());
                     passwordsListModel.addElement(password.getText());
-                } catch (NoSuchPaddingException | InvalidPasswordException | UserDoesNotExistException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException ex) {
+                } catch (NoSuchPaddingException | UserDoesNotExistException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException ex) {
                     ex.printStackTrace();
+                } catch (InvalidPasswordException ip) {
+                    JOptionPane.showConfirmDialog(null, "Password does not meet requirements", "Password does not meet requirements", JOptionPane.DEFAULT_OPTION);
                 }
             }
 

@@ -54,8 +54,13 @@ public class Client {
         identifier = identifier.toLowerCase();
 
         String[] account = {username, password};
-        v.getAccounts()
-         .put(identifier, account);
+
+        if (checkPassword(password).equals("true")) {
+            v.getAccounts()
+             .put(identifier, account);
+        } else {
+            throw new InvalidPasswordException("Password does not meet requirements");
+        }
 
         vaultManager.updateVault(user, hash, v);
     }
@@ -139,6 +144,40 @@ public class Client {
 
     public SecretKey getSecretKey() {
         return secretKey;
+    }
+
+    public static String checkPassword(String password) {
+        if (password.length() < 8) {
+            return "short";
+        } else if (!password.matches("[A-Za-z0-9]+")) {
+            return "nAlphaNum";
+        } else if (!checkNoConsecutive(password)) {
+            return "cCon";
+        } else if (password.toLowerCase().contains("password") || password.toLowerCase().contains("12345678")) {
+            return "com";
+        }
+
+        return "true";
+    }
+
+    public static boolean checkNoConsecutive(String s) {
+        int count = 0;
+        char[] c = s.toCharArray();
+
+        for (int i = 0; i < c.length; i++) {
+            for (int j = i + 1; j < c.length; j++) {
+                if (c[i] == c[j]) {
+                    count += 1;
+                }
+            }
+            if (count > 3) {
+                return false;
+            } else {
+                count = 0;
+            }
+        }
+
+        return true;
     }
 
     /**
