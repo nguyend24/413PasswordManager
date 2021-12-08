@@ -366,6 +366,7 @@ class VaultPanel extends JPanel {
                     ex.printStackTrace();
                 } catch (InvalidPasswordException ip) {
                     JOptionPane.showConfirmDialog(null, "Password does not meet requirements", "Password does not meet requirements", JOptionPane.DEFAULT_OPTION);
+                    ip.printStackTrace();
                 }
             }
 

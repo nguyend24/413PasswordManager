@@ -15,7 +15,7 @@ public class VaultJson extends TypeAdapter<Vault> {
 
         jsonWriter.name("user").value(vault.getUser());
         jsonWriter.name("authKey").value(vault.getAuthKey());
-
+        jsonWriter.name("salt").value(vault.getSalt());
 //        jsonWriter.name("passwords").beginObject();
 //        for (String p : vault.getPasswords().keySet()) {
 //            jsonWriter.name(p).value(vault.getPasswords().get(p));
@@ -46,6 +46,9 @@ public class VaultJson extends TypeAdapter<Vault> {
         String authKey = jsonReader.nextString();
 
         jsonReader.nextName();
+        String salt = jsonReader.nextString();
+
+        jsonReader.nextName();
         jsonReader.beginObject();
 
         Map<String, String[]> accounts = new LinkedHashMap<>();
@@ -64,6 +67,6 @@ public class VaultJson extends TypeAdapter<Vault> {
 
         jsonReader.endObject();
 
-        return new Vault(user, authKey, accounts);
+        return new Vault(user, authKey, accounts, salt);
     }
 }

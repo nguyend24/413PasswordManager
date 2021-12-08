@@ -1,5 +1,6 @@
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import javax.crypto.BadPaddingException;
@@ -15,11 +16,11 @@ import java.util.Map;
 
 
 public class VaultManager {
-    static final  String      VAULT_FILE = "encryptedStorage.txt";
+    static final  String      VAULT_FILE = "passwords.txt";
     private final List<Vault> vaults;
     private final SecretKey   secretKey;
 
-    public VaultManager(SecretKey secretKey) {
+    public VaultManager(SecretKey secretKey, String salt) {
         this.secretKey = secretKey;
         vaults = readVaultStorage(VAULT_FILE, secretKey);
     }
@@ -52,13 +53,14 @@ public class VaultManager {
      * @param authKey   Key that will to used to authenticate the vault in the future
      * @param passwords The list of passwords in Json representation
      */
-    public void createVault(String user, String authKey, String passwords) {
+    public void createVault(String user, String authKey, String passwords, String salt) {
         if (userExists(user)) {
             //Error, can't create a new vault if a user exists
         } else {
             Map<String, String[]> accountsMap = new Gson().fromJson(passwords, new TypeToken<Map<String, String[]>>() {
             }.getType());
-            Vault v = new Vault(user, authKey, accountsMap);
+
+            Vault v = new Vault(user, authKey, accountsMap, salt);
             vaults.add(v);
         }
 
@@ -171,7 +173,9 @@ public class VaultManager {
         File f = new File(filename);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(f))) {
             for (Vault v : vaults) {
-                writer.write(v.toString(secretKey));
+                writer.write(v.getUser() + ',');
+                writer.write(v.getSalt() + ",");
+                writer.write(Client.encrypt(v.toString(secretKey), secretKey));
                 writer.write("\n");
             }
         } catch (IOException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | BadPaddingException | InvalidKeyException io) {
@@ -196,18 +200,21 @@ public class VaultManager {
         String      line;
         try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
             while ((line = reader.readLine()) != null) {
-                Gson  gson = new GsonBuilder().registerTypeAdapter(Vault.class, new VaultJson()).create();
-                Vault v    = gson.fromJson(line, Vault.class);
-                if (v != null) {
+                String[] l = line.split(",");
+                try {
+                    Gson  gson = new GsonBuilder().registerTypeAdapter(Vault.class, new VaultJson()).create();
+                    Vault v    = gson.fromJson(Client.decrypt(l[2], secretKey), Vault.class);
+                    if (v != null) {
 
-                    for (String k : v.getAccounts().keySet()) {
-                        String[] loginDetails = {k, Client.decrypt(v.getAccounts().get(k)[1], secretKey)};
-                        v.getAccounts().put(k, loginDetails);
+                        for (String k : v.getAccounts().keySet()) {
+                            String[] loginDetails = {k, Client.decrypt(v.getAccounts().get(k)[1], secretKey)};
+                            v.getAccounts().put(k, loginDetails);
+                        }
+
+
+                        vaults.add(v);
                     }
-
-
-                    vaults.add(v);
-                }
+                } catch (JsonSyntaxException j) {}
             }
         } catch (FileNotFoundException fileNotFoundException) {
             //Do nothing. There are no passwords currently stored.

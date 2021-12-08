@@ -4,23 +4,34 @@ import com.google.gson.GsonBuilder;
 import javax.crypto.*;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.IOException;
+import java.io.*;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.*;
 
 public class Client {
+    public static final String passwordsFile = "passwords.txt";
+
     private final VaultManager vaultManager;
     private final String       user;
     private final SecretKey    secretKey;
     private final String       hash;
+    private final String       salt;
 
     public Client(String user, String masterKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
         this.user = user;
-        secretKey = getKeyFromPassword(masterKey, user);
-        vaultManager = new VaultManager(getSecretKey());
+        if (userExists(user)) {
+            String[] userRead = readPasswordsFile(user);
+            salt = userRead[1];
+        } else {
+            salt = generateRandomString();
+
+        }
+
+        secretKey = getKeyFromPassword(masterKey, salt);
         hash = hashMasterKey(masterKey);
+        vaultManager = new VaultManager(secretKey, salt);
     }
 
     /**
@@ -29,7 +40,7 @@ public class Client {
      * {"user":JohnSmith,authKey:"2jo4ijr284joifajfalkejf",passwords:{}}
      */
     public void createNewVault() {
-        vaultManager.createVault(user, hash, "{}");
+        vaultManager.createVault(user, hash, "{}", salt);
     }
 
     /**
@@ -71,7 +82,7 @@ public class Client {
      * @param identifier Name to identify saved password. e.g. site domain
      */
     public void removeVaultEntry(String identifier) throws UserDoesNotExistException, InvalidPasswordException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        Vault               v         = retrieveVault();
+        Vault                 v        = retrieveVault();
         Map<String, String[]> accounts = v.getAccounts();
         accounts.remove(identifier);
 
@@ -94,9 +105,9 @@ public class Client {
      * Michael: Changed return type to ArrayList and returned an arrayList containing all passwords
      ***/
     public ArrayList<String> printPasswords() throws UserDoesNotExistException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidPasswordException {
-        Vault               v            = retrieveVault();
-        ArrayList<String>   passwordList = new ArrayList<>();
-        Map<String, String[]> accounts    = v.getAccounts();
+        Vault                 v            = retrieveVault();
+        ArrayList<String>     passwordList = new ArrayList<>();
+        Map<String, String[]> accounts     = v.getAccounts();
         for (String key : accounts.keySet()) {
             System.out.println("u: " + accounts.get(key)[0] + " p: " + accounts.get(key)[1]);
         }
@@ -104,8 +115,8 @@ public class Client {
     }
 
     public ArrayList<String> printKeys() throws UserDoesNotExistException, InvalidPasswordException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        Vault               V       = retrieveVault();
-        ArrayList<String>   keyList = new ArrayList<>();
+        Vault             V       = retrieveVault();
+        ArrayList<String> keyList = new ArrayList<>();
 //        Map<String, String> keys    = V.accounts;
 //        for (String key : keys.keySet()) {
 //            keyList.add(key);
@@ -142,6 +153,44 @@ public class Client {
         return "";
     }
 
+    public boolean userExists(String user) {
+        File   f = new File(passwordsFile);
+        String line;
+        try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
+            while ((line = reader.readLine()) != null) {
+                if (line.split(",")[0].equalsIgnoreCase(user)) {
+                    return true;
+                }
+            }
+        } catch (FileNotFoundException fileNotFoundException) {
+            //Do nothing. There are no passwords currently stored.
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public static String[] readPasswordsFile(String user) {
+        File   f = new File(passwordsFile);
+        String line;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
+            while ((line = reader.readLine()) != null) {
+                String[] l = line.split(",");
+                if (l[0].equalsIgnoreCase(user)) {
+                    return l;
+                }
+            }
+        } catch (FileNotFoundException fileNotFoundException) {
+            //Do nothing. There are no passwords currently stored.
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     public SecretKey getSecretKey() {
         return secretKey;
     }
@@ -149,20 +198,30 @@ public class Client {
     public static String checkPassword(String password) {
         if (password.length() < 8) {
             return "short";
-        } else if (!password.matches("[A-Za-z0-9]+")) {
-            return "nAlphaNum";
-        } else if (!checkNoConsecutive(password)) {
+        /*} else if (! isAlphanumeric(password)) {
+            return "nAlphaNum";*/
+        } else if (! checkNoConsecutive(password)) {
             return "cCon";
-        } else if (password.toLowerCase().contains("password") || password.toLowerCase().contains("12345678")) {
+        } /*else if (password.toLowerCase().contains("password") || password.toLowerCase().contains("12345678")) {
             return "com";
-        }
+        }*/
 
         return "true";
     }
 
+    public static boolean isAlphanumeric(String str) {
+        for (int i=0; i<str.length(); i++) {
+            char c = str.charAt(i);
+            if (!Character.isLetterOrDigit(c))
+                return false;
+        }
+
+        return true;
+    }
+
     public static boolean checkNoConsecutive(String s) {
-        int count = 0;
-        char[] c = s.toCharArray();
+        int    count = 0;
+        char[] c     = s.toCharArray();
 
         for (int i = 0; i < c.length; i++) {
             for (int j = i + 1; j < c.length; j++) {
@@ -178,6 +237,16 @@ public class Client {
         }
 
         return true;
+    }
+
+    public static String generateRandomString() {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        Random rng        = new Random();
+        char[] text       = new char[10];
+        for (int i = 0; i < text.length; i++) {
+            text[i] = characters.charAt(rng.nextInt(characters.length()));
+        }
+        return new String(text);
     }
 
     /**
