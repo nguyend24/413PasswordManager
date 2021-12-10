@@ -65,12 +65,13 @@ public class Client {
         identifier = identifier.toLowerCase();
 
         String[] account = {username, password};
+        String validPassword = checkPassword(password);
 
-        if (checkPassword(password).equals("true")) {
+        if (validPassword.equals("true")) {
             v.getAccounts()
              .put(identifier, account);
         } else {
-            throw new InvalidPasswordException("Password does not meet requirements");
+            throw new InvalidPasswordException(validPassword);
         }
 
         vaultManager.updateVault(user, hash, v);
@@ -197,31 +198,61 @@ public class Client {
 
     public static String checkPassword(String password) {
         if (password.length() < 8) {
-            return "short";
-        /*} else if (! isAlphanumeric(password)) {
-            return "nAlphaNum";*/
-        } else if (! checkNoConsecutive(password)) {
-            return "cCon";
-        } /*else if (password.toLowerCase().contains("password") || password.toLowerCase().contains("12345678")) {
-            return "com";
-        }*/
+            return "Password is too Short!";
+        } else if (! isAlphanumeric(password)) {
+            return "Password doesn't contain both letters and numbers!";
+        } else if (containsRepetition(password)) {
+            return "Password contains consecutive characters or numbers!";
+        } else if (containsConsecutive(password)) {
+            return "Password contains consecutive characters or numbers!";
+        } else if (password.toLowerCase().contains("password") || password.toLowerCase().contains("12345678")) {
+            return "Password contains a commonly used password!";
+        }
 
         return "true";
     }
 
-    public static boolean isAlphanumeric(String str) {
-        for (int i=0; i<str.length(); i++) {
-            char c = str.charAt(i);
-            if (!Character.isLetterOrDigit(c))
-                return false;
+    private static boolean isAlphanumeric(String str) {
+        char    ch;
+        boolean isLetter = false;
+        boolean isNumber = false;
+        for (int i = 0; i < str.length(); i++) {
+            ch = str.charAt(i);
+            if (Character.isLetter(ch)) {
+                isLetter = true;
+            }
+            if (Character.isDigit(ch)) {
+                isNumber = true;
+            }
+            if (isLetter && isNumber) {
+                return true;
+            }
         }
-
-        return true;
+        return false;
     }
 
-    public static boolean checkNoConsecutive(String s) {
+    public static boolean containsConsecutive(String str) {
+//        boolean containsConsecutiveLetters = false;
+//        boolean containsConsecutiveNumbers = false;
+
+        char[] c = str.toCharArray();
+        for (int i = 0; i < c.length - 4; i++) {
+            int first  = c[i] + 3;
+            int second = c[i + 1] + 2;
+            int third  = c[i + 2] + 1;
+            int fourth = c[i + 3];
+
+            if (first == fourth && second == fourth && third == fourth) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean containsRepetition(String str) {
         int    count = 0;
-        char[] c     = s.toCharArray();
+        char[] c     = str.toCharArray();
 
         for (int i = 0; i < c.length; i++) {
             for (int j = i + 1; j < c.length; j++) {
@@ -230,13 +261,13 @@ public class Client {
                 }
             }
             if (count > 3) {
-                return false;
+                return true;
             } else {
                 count = 0;
             }
         }
 
-        return true;
+        return false;
     }
 
     public static String generateRandomString() {
