@@ -293,7 +293,6 @@ class VaultPanel extends JPanel {
         passwordsList.addListSelectionListener(e -> synchronizeSelection(passwordsList.getSelectedIndex()));
 
         Dimension listDimension = new Dimension(200, frame.getFrame().getHeight());
-        System.out.println(this.getHeight());
 
         JScrollPane siteScroller = new JScrollPane(sitesList);
         siteScroller.setPreferredSize(listDimension);
@@ -357,6 +356,10 @@ class VaultPanel extends JPanel {
 
             int result = JOptionPane.showConfirmDialog(null, newEntryInfo, "Enter Account information", JOptionPane.OK_CANCEL_OPTION);
             if (result == JOptionPane.OK_OPTION) {
+                if (v.getAccounts().containsKey(siteIdentifier.getText())) {
+                    JOptionPane.showConfirmDialog(null, "Entry already exists!", "Entry already exists", JOptionPane.DEFAULT_OPTION);
+                    return;
+                }
                 try {
                     client.addVaultEntry(siteIdentifier.getText(), username.getText(), password.getText());
                     sitesListModel.addElement(siteIdentifier.getText());
@@ -365,7 +368,7 @@ class VaultPanel extends JPanel {
                 } catch (NoSuchPaddingException | UserDoesNotExistException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException ex) {
                     ex.printStackTrace();
                 } catch (InvalidPasswordException ip) {
-                    JOptionPane.showConfirmDialog(null, "Password does not meet requirements", "Password does not meet requirements", JOptionPane.DEFAULT_OPTION);
+                    JOptionPane.showConfirmDialog(null, ip.getMessage(), ip.getMessage(), JOptionPane.DEFAULT_OPTION);
                     ip.printStackTrace();
                 }
             }
