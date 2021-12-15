@@ -19,6 +19,13 @@ public class Client {
     private final String       hash;
     private final String       salt;
 
+    /**
+     * Creates a new Client. A client represents a single user logging into their vault
+     * @param user Username
+     * @param masterKey Password
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
+     */
     public Client(String user, String masterKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
         this.user = user;
         if (userExists(user)) {
@@ -154,6 +161,12 @@ public class Client {
         return "";
     }
 
+    /**
+     * Check if a user has an account in the vault
+     *
+     * @param user User to check
+     * @return True if the user has an existing vault, false otherwise
+     */
     public boolean userExists(String user) {
         File   f = new File(passwordsFile);
         String line;
@@ -172,6 +185,12 @@ public class Client {
         return false;
     }
 
+    /**
+     * Reads the file where user vaults are stored
+     *
+     * @param user User to search for and return
+     * @return The vault of the specified user
+     */
     public static String[] readPasswordsFile(String user) {
         File   f = new File(passwordsFile);
         String line;
@@ -196,6 +215,16 @@ public class Client {
         return secretKey;
     }
 
+    /**
+     * Checks a string for the following requirements:
+     * Length is greater than 8
+     * Contains both letters and numbers
+     * Does not contain repeated letters or numbers of length 4 or greater
+     * Does not contain consecutive letters or numbers of length 4 or greater
+     *
+     * @param password Password string to check
+     * @return "True" if all requirements are met, error code otherwise
+     */
     public static String checkPassword(String password) {
         if (password.length() < 8) {
             return "Password is too Short!";
@@ -212,6 +241,12 @@ public class Client {
         return "true";
     }
 
+    /**
+     * Checks if a string contains both letters and numbers
+     *
+     * @param str String to check
+     * @return True if the string contains both letters and numbers, false otherwise
+     */
     private static boolean isAlphanumeric(String str) {
         char    ch;
         boolean isLetter = false;
@@ -231,6 +266,12 @@ public class Client {
         return false;
     }
 
+    /**
+     * Checks if a string contains consecutive letters or number 4 or more in length
+     *
+     * @param str String to check
+     * @return True if string contains consecutive letters or numbers, false otherwise
+     */
     public static boolean containsConsecutive(String str) {
 //        boolean containsConsecutiveLetters = false;
 //        boolean containsConsecutiveNumbers = false;
@@ -250,6 +291,12 @@ public class Client {
         return false;
     }
 
+    /**
+     * Check if a string contains repetition of letters or numbers of 4 or more in length
+     *
+     * @param str String to check
+     * @return True if string contains repetition, false otherwise
+     */
     public static boolean containsRepetition(String str) {
         int    count = 0;
         char[] c     = str.toCharArray();
@@ -270,6 +317,11 @@ public class Client {
         return false;
     }
 
+    /**
+     * Generates a random string that contains captital letters and numbers
+     *
+     * @return A random string
+     */
     public static String generateRandomString() {
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         Random rng        = new Random();
@@ -286,11 +338,6 @@ public class Client {
      * @param input A String to be encrypted
      * @param key   The key to use to perform encryption
      * @return AES encrypted and Base64 encoded version of the input text
-     * @throws NoSuchPaddingException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeyException
-     * @throws BadPaddingException
-     * @throws IllegalBlockSizeException
      */
     public static String encrypt(String input, SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
         Cipher cipher = Cipher.getInstance("AES");
@@ -304,14 +351,9 @@ public class Client {
     /**
      * Decrypts a ciphertext with the given key
      *
-     * @param input
-     * @param key
+     * @param input Input to be decrypted
+     * @param key Key to use in order to decrypt
      * @return Decrypted ciphertext
-     * @throws NoSuchPaddingException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeyException
-     * @throws IllegalBlockSizeException
-     * @throws BadPaddingException
      */
     public static String decrypt(String input, SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance("AES");
@@ -326,10 +368,8 @@ public class Client {
      * Generates a Secret Key for use with AES encryption
      *
      * @param password A text to transform into a key
-     * @param salt
+     * @param salt Salt to use with the key
      * @return A SecretKey for the provided password and salt
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
      */
     public static SecretKey getKeyFromPassword(String password, String salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
 

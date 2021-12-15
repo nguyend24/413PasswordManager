@@ -17,7 +17,13 @@ public class PasswordVault {
     private final JFrame     frame;
     private LoginPanel loginPanel;
 
-
+    /**
+     * The main GUI window for interacting with vault
+     * @throws UnsupportedLookAndFeelException
+     * @throws ClassNotFoundException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     */
     public PasswordVault() throws UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         frame = new JFrame();
@@ -43,6 +49,11 @@ public class PasswordVault {
         frame.revalidate();
     }
 
+    /**
+     * A login attempt. If the login is successful then the pane changes to display the vault.
+     * @param user
+     * @param password
+     */
     public void login(String user, String password) {
         try {
             Client client = new Client(user, password);
@@ -56,6 +67,10 @@ public class PasswordVault {
             loginPanel.invalidLogin();
         }
     }
+
+    /**
+     * Changes to a new pane for creating a new user account
+     */
     public void createNewUser(){
 
         newUserPanel newUser = new newUserPanel(this);
@@ -64,12 +79,18 @@ public class PasswordVault {
         this.frame.revalidate();
     }
 
+    /**
+     * Logs the user out of their vault
+     */
     public void logout() {
         loginPanel = new LoginPanel(this);
         frame.setContentPane(loginPanel);
         frame.revalidate();
     }
 
+    /**
+     * @return The root JFrame being used
+     */
     public JFrame getFrame() {
         return frame;
     }
@@ -98,6 +119,9 @@ class LoginPanel extends JPanel {
         passwordVault.revalidate();
     }
 
+    /**
+     * Display an error message for an invalid login attempt
+     */
     public void invalidLogin() {
         this.removeAll();
 
@@ -124,6 +148,9 @@ class LoginPanel extends JPanel {
         passwordVault.revalidate();
     }
 
+    /**
+     * Helper method for creating the layout of the login page
+     */
     private void addLoginFields() {
         /*
         Username entry
@@ -224,7 +251,11 @@ class newUserPanel extends JPanel{
         newUserDisplay.revalidate();
     }
 
-        //Message to be displayed if vault creation is successful
+    /**
+     * Display a message if a user is able to be successfully created
+     * @param frame The frame to display the message in
+     * @throws InterruptedException
+     */
     void successfulNewUser(PasswordVault frame) throws InterruptedException {
         this.removeAll();
 
@@ -246,7 +277,13 @@ class newUserPanel extends JPanel{
         successfulUserDisplay.revalidate();
     }
 
-
+    /**
+     * Creates a new user
+     * @param username
+     * @param password
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
+     */
     void createNewUser(String username, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
         Client c = new Client(username, password);
         c.createNewVault();
@@ -419,12 +456,23 @@ class VaultPanel extends JPanel {
         actionButtons.add(deleteUser);
     }
 
+    /**
+     * Ensures that when an item in the list is selected that other items in the same row are also selected
+     * @param index
+     */
     private void synchronizeSelection(int index) {
         sitesList.setSelectedIndex(index);
         usernamesList.setSelectedIndex(index);
         passwordsList.setSelectedIndex(index);
     }
 
+    /**
+     * Delates a user from the vault
+     * @param user
+     * @param client
+     * @param frame
+     * @throws IOException
+     */
     private void deleteUser(String user, Client client, PasswordVault frame) throws IOException {
         client.deleteVault(user);
         frame.logout();
